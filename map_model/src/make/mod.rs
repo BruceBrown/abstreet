@@ -11,7 +11,7 @@ use crate::raw::{OriginalRoad, RawMap};
 use crate::{
     connectivity, osm, AccessRestrictions, Area, AreaID, AreaType, ControlStopSign,
     ControlTrafficSignal, Direction, Intersection, IntersectionID, IntersectionType, Lane, LaneID,
-    Map, MapEdits, Movement, PathConstraints, Position, Road, RoadID, Zone,
+    Map, MapEdits, Movement, PathConstraints, Position, Road, RoadID, Turn, Zone,
 };
 
 mod bridges;
@@ -355,6 +355,7 @@ impl Map {
         intersections: Vec<Intersection>,
         roads: Vec<Road>,
         lanes: Vec<Lane>,
+        turns: Vec<Turn>,
     ) -> Map {
         let mut map = Map::blank();
         map.name = name;
@@ -365,6 +366,7 @@ impl Map {
         map.intersections = intersections;
         map.roads = roads;
         map.lanes = lanes;
+        map.turns = turns.into_iter().map(|turn| (turn.id, turn)).collect();
 
         let stop_signs = map
             .intersections
