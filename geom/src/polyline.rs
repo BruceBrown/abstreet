@@ -96,7 +96,11 @@ impl PolyLine {
         if self_width <= boundary_width || self.length() <= boundary_width + EPSILON_DIST {
             return None;
         }
-        let slice = self.exact_slice(boundary_width / 2.0, self.length() - boundary_width / 2.0);
+        // TODO exact_slice() used to work fine here, but the SUMO montlake map triggers a problem
+        // there
+        let slice = self
+            .maybe_exact_slice(boundary_width / 2.0, self.length() - boundary_width / 2.0)
+            .ok()?;
         Some(
             slice
                 .to_thick_ring(self_width - boundary_width)
@@ -277,9 +281,7 @@ impl PolyLine {
         self.maybe_exact_slice(start, end).unwrap()
     }
     pub fn maybe_exact_slice(&self, start: Distance, end: Distance) -> Result<PolyLine, String> {
-        let (pl, leftover) = self
-            .slice(start, end)
-            .map_err(|_| format!("exact_slice({}, {}) yielded empty slice", start, end))?;
+        let (pl, leftover) = self.slice(start, end)?;
         if leftover > EPSILON_DIST {
             return Err(format!(
                 "exact_slice({}, {}) on a PL of length {} yielded leftover distance of {}",
