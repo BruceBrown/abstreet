@@ -5,7 +5,8 @@ use geom::{Distance, Percent, Polygon, Pt2D};
 use map_model::City;
 use widgetry::{
     Autocomplete, Color, ControlState, DrawBaselayer, EventCtx, GeomBatch, GfxCtx, Key, Line,
-    Outcome, Panel, ScreenPt, State, StyledButtons, Text, TextExt, Transition, Widget,
+    Outcome, Panel, RewriteColor, ScreenPt, State, StyledButtons, Text, TextExt, Transition,
+    Widget,
 };
 
 use crate::load::{FileLoader, MapLoader};
@@ -62,42 +63,51 @@ impl<A: AppLike + 'static> CityPicker<A> {
                         batch.push(DrawArea::fill(area_type, app.cs()), polygon);
                     }
 
+                    let mut buttons = Vec::new();
                     for (name, polygon) in city.regions {
                         let color = app.cs().rotating_color_agents(districts.len());
 
                         let btn = ctx
                             .style()
                             .btn_outline_light_text(nice_map_name(&name))
-                            .label_color(color, ControlState::Default)
                             .no_tooltip();
 
                         let action = name.path();
                         if &name == app.map().get_name() {
                             let btn = btn.disabled(true);
-                            this_city.push(btn.build_widget(ctx, &action));
+                            buttons.push((name.clone(), btn.build_widget(ctx, &action)));
                         } else {
-                            this_city.push(btn.build_widget(ctx, &action));
+                            buttons.push((name.clone(), btn.build_widget(ctx, &action)));
                             batch.push(color, polygon.to_outline(Distance::meters(200.0)).unwrap());
                             districts.push((name, color, polygon.scale(zoom)));
                         }
                     }
                     batch = batch.scale(zoom);
 
-                    this_city.insert(
-                        0,
-                        format!("More districts in {}", city_name.describe()).draw_text(ctx),
-                    );
+                    this_city
+                        .push(format!("More districts in {}", city_name.describe()).draw_text(ctx));
+                    // city.regions are sorted in an order necessary for z-ordering (larger regions
+                    // last), but we want the buttons listed on the side to be alphabetical.
+                    buttons.sort_by_key(|(name, _)| name.clone());
+                    for (_, btn) in buttons {
+                        this_city.push(btn);
+                    }
                 }
 
                 let mut other_places = vec![Line("Other places").draw(ctx)];
                 for (country, cities) in cities_per_country() {
+                    // If there's only one city and we're already there, skip it.
+                    if cities.len() == 1 && cities[0] == city_name {
+                        continue;
+                    }
                     other_places.push(
                         ctx.style()
-                            .btn_outline_light_text(&format!(
-                                "{} in {}",
-                                cities.len(),
-                                nice_country_name(&country)
-                            ))
+                            .btn_outline_light_icon_text(
+                                &format!("system/assets/flags/{}.svg", country),
+                                &format!("{} in {}", cities.len(), nice_country_name(&country)),
+                            )
+                            .image_color(RewriteColor::NoOp, ControlState::Default)
+                            .image_dims(30.0)
                             .build_widget(ctx, &country),
                     );
                 }
@@ -214,7 +224,7 @@ impl<A: AppLike + 'static> State<A> for CityPicker<A> {
                     }
                 } else if let Some(btn) = self.panel.currently_hovering() {
                     for (idx, (name, _, _)) in self.districts.iter().enumerate() {
-                        if &name.map == btn {
+                        if &name.path() == btn {
                             self.selected = Some(idx);
                             break;
                         }
@@ -376,10 +386,14 @@ impl<A: AppLike + 'static> CitiesInCountryPicker<A> {
             );
         }
 
+        let flag = GeomBatch::load_svg(ctx, &format!("system/assets/flags/{}.svg", country));
+        let y_factor = 30.0 / flag.get_dims().height;
+
         Box::new(CitiesInCountryPicker {
             on_load: Some(on_load),
             panel: Panel::new(Widget::col(vec![
                 Widget::row(vec![
+                    Widget::draw_batch(ctx, flag.scale(y_factor)),
                     Line(format!("Select a city in {}", nice_country_name(country)))
                         .small_heading()
                         .draw(ctx),

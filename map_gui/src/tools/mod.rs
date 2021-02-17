@@ -68,9 +68,15 @@ pub fn nice_map_name(name: &MapName) -> &str {
         },
         "de" => match (name.city.city.as_ref(), name.map.as_ref()) {
             ("berlin", "center") => "Berlin (city center)",
+            ("rostock", "center") => "Rostock",
             _ => &name.map,
         },
         "fr" => match (name.city.city.as_ref(), name.map.as_ref()) {
+            ("charleville_mezieres", "secteur1") => "Charleville-Mézières (secteur 1)",
+            ("charleville_mezieres", "secteur2") => "Charleville-Mézières (secteur 2)",
+            ("charleville_mezieres", "secteur3") => "Charleville-Mézières (secteur 3)",
+            ("charleville_mezieres", "secteur4") => "Charleville-Mézières (secteur 4)",
+            ("charleville_mezieres", "secteur5") => "Charleville-Mézières (secteur 5)",
             ("paris", "center") => "Paris (city center)",
             ("paris", "north") => "Paris (north)",
             ("paris", "south") => "Paris (south)",
@@ -105,7 +111,16 @@ pub fn nice_map_name(name: &MapName) -> &str {
             ("long_marston", "center") => "Long Marston (Stratford)",
             ("micklefield", "center") => "Micklefield",
             ("newcastle_great_park", "center") => "Newcastle Great Park",
-            ("poynton", "handforth") => "Handforth (Poynton)",
+            ("poundbury", "center") => "Poundbury",
+            ("priors_hall", "center") => "Priors Hall",
+            ("taunton_firepool", "center") => "Taunton Firepool",
+            ("taunton_garden", "center") => "Taunton Garden",
+            ("tresham", "center") => "Tresham",
+            ("trumpington_meadows", "center") => "Trumpington Meadows",
+            ("tyersal_lane", "center") => "Tyersal Lane",
+            ("upton", "center") => "Upton",
+            ("wichelstowe", "center") => "Wichelstowe",
+            ("wixams", "center") => "Wixams",
             _ => &name.map,
         },
         "il" => match (name.city.city.as_ref(), name.map.as_ref()) {
@@ -118,6 +133,7 @@ pub fn nice_map_name(name: &MapName) -> &str {
             _ => &name.map,
         },
         "us" => match (name.city.city.as_ref(), name.map.as_ref()) {
+            ("anchorage", "downtown") => "Anchorage",
             ("bellevue", "huge") => "Bellevue",
             ("detroit", "downtown") => "Detroit",
             ("nyc", "lower_manhattan") => "Lower Manhattan",
@@ -145,6 +161,8 @@ pub fn nice_map_name(name: &MapName) -> &str {
 }
 
 pub fn nice_country_name(code: &str) -> &str {
+    // If you add something here, please also add the flag to data/system/assets/flags.
+    // https://github.com/hampusborgos/country-flags/tree/master/svg
     match code {
         "at" => "Austria",
         "ca" => "Canada",
